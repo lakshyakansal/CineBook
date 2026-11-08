@@ -1,0 +1,11 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: cinebook
+      POSTGRES_USER: cinebook
+      POSTGRES_PASSWORD: cinebook_dev_password
+    ports: ["5432:5432"]
+    volumes: ["cinebook_data:/var/lib/postgresql/data", "./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro"]
+volumes:
+  cinebook_data:
