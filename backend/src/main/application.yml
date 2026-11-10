@@ -1,0 +1,13 @@
+server:
+  port: ${PORT:8080}
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cinebook}
+    username: ${SPRING_DATASOURCE_USERNAME:cinebook}
+    password: ${SPRING_DATASOURCE_PASSWORD:cinebook_dev_password}
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:local-development-secret-change-this-32-characters-minimum}
+    expiration-ms: 86400000
+  cors:
+    origins: ${APP_CORS_ORIGINS:http://localhost:5173}
