@@ -1,0 +1,9 @@
+package com.cinebook.api;
+import com.cinebook.security.JwtService;import jakarta.validation.Valid;import jakarta.validation.constraints.*;import java.util.*;import org.springframework.jdbc.core.JdbcTemplate;import org.springframework.security.crypto.password.PasswordEncoder;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/auth") public class AuthController{
+ private final JdbcTemplate db;private final PasswordEncoder enc;private final JwtService jwt;public AuthController(JdbcTemplate d,PasswordEncoder e,JwtService j){db=d;enc=e;jwt=j;}
+ record Credentials(@Email String email,@NotBlank String password){} record Registration(@NotBlank String name,@Email String email,@Size(min=8)String password){}
+ @PostMapping("/register") Map<String,Object> register(@Valid @RequestBody Registration r){String email=r.email().toLowerCase();if(!db.queryForList("select id from app_user where email=?",email).isEmpty())throw new IllegalArgumentException("Email already registered");Long id=db.queryForObject("insert into app_user(name,email,password_hash,role) values(?,?,?,'CUSTOMER') returning id",Long.class,r.name(),email,enc.encode(r.password()));return result(id,email,"CUSTOMER",r.name());}
+ @PostMapping("/login") Map<String,Object> login(@Valid @RequestBody Credentials r){var rows=db.queryForList("select * from app_user where email=?",r.email().toLowerCase());if(rows.isEmpty()||!enc.matches(r.password(),(String)rows.get(0).get("password_hash")))throw new IllegalArgumentException("Invalid email or password");var u=rows.get(0);return result(((Number)u.get("id")).longValue(),(String)u.get("email"),(String)u.get("role"),(String)u.get("name"));}
+ Map<String,Object> result(long id,String email,String role,String name){return Map.of("token",jwt.create(id,email,role),"user",Map.of("id",id,"email",email,"role",role,"name",name));}
+}
